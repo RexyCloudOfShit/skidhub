@@ -152,7 +152,7 @@ function RayfieldCustom.CreateButton(Window, Text, Callback)
     return Button
 end
 
--- Creates a toggle
+-- Creates a toggle (FIXED VERSION)
 function RayfieldCustom.CreateToggle(Window, Text, Default, Callback)
     local Toggle = Instance.new("TextButton")
     Toggle.Name = "Toggle"
@@ -162,10 +162,11 @@ function RayfieldCustom.CreateToggle(Window, Text, Default, Callback)
     Toggle.AutoButtonColor = false
     Toggle.Parent = Window.Container
 
+    -- Toggle Frame (Background)
     local ToggleFrame = Instance.new("Frame")
     ToggleFrame.Name = "ToggleFrame"
     ToggleFrame.Size = UDim2.new(0, 40, 0, 20)
-    ToggleFrame.Position = UDim2.new(1, -45, 0.5, -10)
+    ToggleFrame.Position = UDim2.new(1, -10, 0.5, -10)
     ToggleFrame.AnchorPoint = Vector2.new(1, 0.5)
     ToggleFrame.BackgroundColor3 = Theme.MainColor
     ToggleFrame.BackgroundTransparency = 0.5
@@ -175,6 +176,7 @@ function RayfieldCustom.CreateToggle(Window, Text, Default, Callback)
     ToggleCorner.CornerRadius = UDim.new(1, 0)
     ToggleCorner.Parent = ToggleFrame
 
+    -- Toggle Dot (Slider)
     local ToggleDot = Instance.new("Frame")
     ToggleDot.Name = "ToggleDot"
     ToggleDot.Size = UDim2.new(0, 16, 0, 16)
@@ -187,6 +189,7 @@ function RayfieldCustom.CreateToggle(Window, Text, Default, Callback)
     ToggleCornerDot.CornerRadius = UDim.new(1, 0)
     ToggleCornerDot.Parent = ToggleDot
 
+    -- Toggle Label (Text)
     local ToggleLabel = Instance.new("TextLabel")
     ToggleLabel.Name = "Label"
     ToggleLabel.Text = Text or "Toggle"
@@ -195,6 +198,7 @@ function RayfieldCustom.CreateToggle(Window, Text, Default, Callback)
     ToggleLabel.TextSize = 14
     ToggleLabel.BackgroundTransparency = 1
     ToggleLabel.Size = UDim2.new(1, -50, 1, 0)
+    ToggleLabel.Position = UDim2.new(0, 10, 0, 0)
     ToggleLabel.TextXAlignment = Enum.TextXAlignment.Left
     ToggleLabel.Parent = Toggle
 
