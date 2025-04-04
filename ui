@@ -1,227 +1,224 @@
-local GUILib = {}
-local TweenService = game:GetService("TweenService")
+local RayfieldCustom = {}
 
--- Default theme settings
-GUILib.Theme = {
-    PrimaryColor = Color3.fromRGB(70, 130, 200),
-    SecondaryColor = Color3.fromRGB(30, 30, 30),
+-- Services
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+
+-- Default Theme
+local Theme = {
+    MainColor = Color3.fromRGB(25, 25, 25),
+    AccentColor = Color3.fromRGB(0, 85, 255),
     TextColor = Color3.fromRGB(255, 255, 255),
     Font = Enum.Font.Gotham,
-    TweenTime = 0.2,
-    CornerRadius = 8,
-    ShadowColor = Color3.fromRGB(0, 0, 0),
-    ShadowTransparency = 0.7
+    TweenTime = 0.25
 }
 
--- Creates a basic frame with optional shadow
-function GUILib:CreateFrame(props)
-    local frame = Instance.new("Frame")
-    frame.BackgroundColor3 = props.BackgroundColor3 or GUILib.Theme.SecondaryColor
-    frame.Size = props.Size or UDim2.new(0, 200, 0, 50)
-    frame.Position = props.Position or UDim2.new(0.5, 0, 0.5, 0)
-    frame.AnchorPoint = props.AnchorPoint or Vector2.new(0.5, 0.5)
-    frame.Parent = props.Parent
-    
-    if props.CornerRadius or GUILib.Theme.CornerRadius then
-        local corner = Instance.new("UICorner", frame)
-        corner.CornerRadius = UDim.new(0, props.CornerRadius or GUILib.Theme.CornerRadius)
-    end
-    
-    if props.Shadow then
-        local shadow = Instance.new("ImageLabel", frame)
-        shadow.Name = "Shadow"
-        shadow.Image = "rbxassetid://1316045217"
-        shadow.ImageColor3 = GUILib.Theme.ShadowColor
-        shadow.ImageTransparency = GUILib.Theme.ShadowTransparency
-        shadow.ScaleType = Enum.ScaleType.Slice
-        shadow.SliceCenter = Rect.new(10, 10, 118, 118)
-        shadow.Size = UDim2.new(1, 10, 1, 10)
-        shadow.Position = UDim2.new(0, -5, 0, -5)
-        shadow.BackgroundTransparency = 1
-        shadow.ZIndex = frame.ZIndex - 1
-    end
-    
-    return frame
+-- Helper function for tweening
+local function Tween(Object, Properties)
+    local Tween = TweenService:Create(Object, TweenInfo.new(Theme.TweenTime), Properties)
+    Tween:Play()
+    return Tween
 end
 
--- Creates a button with hover effects
-function GUILib:CreateButton(props)
-    local button = self:CreateFrame({
-        BackgroundColor3 = props.BackgroundColor3 or GUILib.Theme.PrimaryColor,
-        Size = props.Size or UDim2.new(0, 120, 0, 35),
-        Position = props.Position,
-        Parent = props.Parent,
-        CornerRadius = props.CornerRadius,
-        Shadow = props.Shadow
-    })
-    
-    local label = Instance.new("TextLabel", button)
-    label.Text = props.Text or "Button"
-    label.TextColor3 = GUILib.Theme.TextColor
-    label.Font = GUILib.Theme.Font
-    label.Size = UDim2.new(1, 0, 1, 0)
-    label.BackgroundTransparency = 1
-    label.TextScaled = true
-    
-    -- Hover effect
-    button.MouseEnter:Connect(function()
-        TweenService:Create(button, TweenInfo.new(GUILib.Theme.TweenTime), {
-            BackgroundColor3 = Color3.fromRGB(90, 150, 220)
-        }):Play()
-    end)
-    
-    button.MouseLeave:Connect(function()
-        TweenService:Create(button, TweenInfo.new(GUILib.Theme.TweenTime), {
-            BackgroundColor3 = GUILib.Theme.PrimaryColor
-        }):Play()
-    end)
-    
-    button.MouseButton1Click:Connect(function()
-        if props.OnClick then
-            props.OnClick()
-        end
-    end)
-    
-    return button
-end
+-- Creates a draggable window
+function RayfieldCustom.CreateWindow(Title)
+    local ScreenGui = Instance.new("ScreenGui")
+    ScreenGui.Name = "RayfieldCustomUI"
+    ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
 
--- Creates a toggle switch
-function GUILib:CreateToggle(props)
-    local toggleFrame = self:CreateFrame({
-        BackgroundColor3 = Color3.fromRGB(60, 60, 60),
-        Size = props.Size or UDim2.new(0, 40, 0, 20),
-        Position = props.Position,
-        Parent = props.Parent,
-        CornerRadius = 20
-    })
-    
-    local toggleButton = self:CreateFrame({
-        BackgroundColor3 = Color3.fromRGB(120, 120, 120),
-        Size = UDim2.new(0, 16, 0, 16),
-        Position = UDim2.new(0, 2, 0.5, 0),
-        AnchorPoint = Vector2.new(0, 0.5),
-        Parent = toggleFrame,
-        CornerRadius = 20
-    })
-    
-    local state = props.Default or false
-    
-    local function updateToggle()
-        if state then
-            TweenService:Create(toggleButton, TweenInfo.new(GUILib.Theme.TweenTime), {
-                BackgroundColor3 = GUILib.Theme.PrimaryColor,
-                Position = UDim2.new(1, -18, 0.5, 0)
-            }):Play()
-            TweenService:Create(toggleFrame, TweenInfo.new(GUILib.Theme.TweenTime), {
-                BackgroundColor3 = Color3.fromRGB(70, 130, 200):Lerp(Color3.fromRGB(30, 30, 30), 0.3)
-            }):Play()
-        else
-            TweenService:Create(toggleButton, TweenInfo.new(GUILib.Theme.TweenTime), {
-                BackgroundColor3 = Color3.fromRGB(120, 120, 120),
-                Position = UDim2.new(0, 2, 0.5, 0)
-            }):Play()
-            TweenService:Create(toggleFrame, TweenInfo.new(GUILib.Theme.TweenTime), {
-                BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-            }):Play()
-        end
-    end
-    
-    toggleFrame.MouseButton1Click:Connect(function()
-        state = not state
-        updateToggle()
-        if props.OnToggle then
-            props.OnToggle(state)
+    local MainFrame = Instance.new("Frame")
+    MainFrame.Name = "MainFrame"
+    MainFrame.Size = UDim2.new(0, 400, 0, 300)
+    MainFrame.Position = UDim2.new(0.5, -200, 0.5, -150)
+    MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+    MainFrame.BackgroundColor3 = Theme.MainColor
+    MainFrame.BackgroundTransparency = 0.1
+    MainFrame.BorderSizePixel = 0
+    MainFrame.ClipsDescendants = true
+    MainFrame.Parent = ScreenGui
+
+    local Corner = Instance.new("UICorner")
+    Corner.CornerRadius = UDim.new(0, 6)
+    Corner.Parent = MainFrame
+
+    local TopBar = Instance.new("Frame")
+    TopBar.Name = "TopBar"
+    TopBar.Size = UDim2.new(1, 0, 0, 30)
+    TopBar.BackgroundColor3 = Theme.MainColor
+    TopBar.BorderSizePixel = 0
+    TopBar.Parent = MainFrame
+
+    local TitleLabel = Instance.new("TextLabel")
+    TitleLabel.Name = "Title"
+    TitleLabel.Text = Title or "Rayfield Custom UI"
+    TitleLabel.Font = Theme.Font
+    TitleLabel.TextColor3 = Theme.TextColor
+    TitleLabel.TextSize = 14
+    TitleLabel.BackgroundTransparency = 1
+    TitleLabel.Size = UDim2.new(1, -10, 1, 0)
+    TitleLabel.Position = UDim2.new(0, 10, 0, 0)
+    TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    TitleLabel.Parent = TopBar
+
+    -- Draggable window logic
+    local Dragging, DragInput, DragStart, StartPos
+    TopBar.InputBegan:Connect(function(Input)
+        if Input.UserInputType == Enum.UserInputType.MouseButton1 then
+            Dragging = true
+            DragStart = Input.Position
+            StartPos = MainFrame.Position
+            Input.Changed:Connect(function()
+                if Input.UserInputState == Enum.UserInputState.End then
+                    Dragging = false
+                end
+            end)
         end
     end)
-    
-    updateToggle()
-    
+
+    TopBar.InputChanged:Connect(function(Input)
+        if Input.UserInputType == Enum.UserInputType.MouseMovement then
+            DragInput = Input
+        end
+    end)
+
+    UserInputService.InputChanged:Connect(function(Input)
+        if Dragging and Input == DragInput then
+            local Delta = Input.Position - DragStart
+            MainFrame.Position = UDim2.new(StartPos.X.Scale, StartPos.X.Offset + Delta.X, StartPos.Y.Scale, StartPos.Y.Offset + Delta.Y)
+        end
+    end)
+
+    -- Container for elements
+    local Container = Instance.new("Frame")
+    Container.Name = "Container"
+    Container.Size = UDim2.new(1, -20, 1, -40)
+    Container.Position = UDim2.new(0, 10, 0, 35)
+    Container.BackgroundTransparency = 1
+    Container.Parent = MainFrame
+
+    local UIListLayout = Instance.new("UIListLayout")
+    UIListLayout.Padding = UDim.new(0, 5)
+    UIListLayout.Parent = Container
+
     return {
-        SetState = function(self, newState)
-            state = newState
-            updateToggle()
-        end,
-        GetState = function(self)
-            return state
-        end
+        ScreenGui = ScreenGui,
+        MainFrame = MainFrame,
+        Container = Container,
+        Theme = Theme,
     }
 end
 
--- Creates a tab system
-function GUILib:CreateTabSystem(props)
-    local tabSystem = self:CreateFrame({
-        BackgroundColor3 = GUILib.Theme.SecondaryColor,
-        Size = props.Size or UDim2.new(0, 300, 0, 350),
-        Position = props.Position or UDim2.new(0.5, 0, 0.5, 0),
-        Parent = props.Parent,
-        CornerRadius = props.CornerRadius,
-        Shadow = true
-    })
-    
-    local tabButtonsFrame = self:CreateFrame({
-        BackgroundColor3 = Color3.fromRGB(40, 40, 40),
-        Size = UDim2.new(1, 0, 0, 40),
-        Position = UDim2.new(0, 0, 0, 0),
-        Parent = tabSystem,
-        CornerRadius = {topLeft = props.CornerRadius or GUILib.Theme.CornerRadius}
-    })
-    
-    local contentFrame = self:CreateFrame({
-        BackgroundColor3 = GUILib.Theme.SecondaryColor,
-        Size = UDim2.new(1, 0, 1, -40),
-        Position = UDim2.new(0, 0, 0, 40),
-        Parent = tabSystem
-    })
-    
-    local tabs = {}
-    local currentTab = nil
-    
-    function tabSystem:AddTab(tabName)
-        local tabButton = self:CreateButton({
-            Text = tabName,
-            Size = UDim2.new(0.5, 0, 1, 0),
-            Position = UDim2.new(#tabs * 0.5, 0, 0, 0),
-            Parent = tabButtonsFrame,
-            BackgroundColor3 = Color3.fromRGB(50, 50, 50),
-            CornerRadius = 0
-        })
-        
-        local tabContent = self:CreateFrame({
-            BackgroundTransparency = 1,
-            Size = UDim2.new(1, 0, 1, 0),
-            Parent = contentFrame,
-            Visible = false
-        })
-        
-        table.insert(tabs, {
-            name = tabName,
-            button = tabButton,
-            content = tabContent
-        })
-        
-        tabButton.MouseButton1Click:Connect(function()
-            if currentTab then
-                currentTab.content.Visible = false
-                TweenService:Create(currentTab.button, TweenInfo.new(GUILib.Theme.TweenTime), {
-                    BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-                }):Play()
-            end
-            
-            currentTab = tabs[#tabs]
-            currentTab.content.Visible = true
-            TweenService:Create(currentTab.button, TweenInfo.new(GUILib.Theme.TweenTime), {
-                BackgroundColor3 = GUILib.Theme.PrimaryColor
-            }):Play()
-        end)
-        
-        if #tabs == 1 then
-            tabButton.MouseButton1Click:Fire()
-        end
-        
-        return tabContent
-    end
-    
-    return tabSystem
+-- Creates a button
+function RayfieldCustom.CreateButton(Window, Text, Callback)
+    local Button = Instance.new("TextButton")
+    Button.Name = "Button"
+    Button.Size = UDim2.new(1, 0, 0, 35)
+    Button.BackgroundColor3 = Theme.MainColor
+    Button.BackgroundTransparency = 0.5
+    Button.Text = Text or "Button"
+    Button.Font = Theme.Font
+    Button.TextColor3 = Theme.TextColor
+    Button.TextSize = 14
+    Button.AutoButtonColor = false
+    Button.Parent = Window.Container
+
+    local Corner = Instance.new("UICorner")
+    Corner.CornerRadius = UDim.new(0, 4)
+    Corner.Parent = Button
+
+    -- Hover effect
+    Button.MouseEnter:Connect(function()
+        Tween(Button, { BackgroundTransparency = 0.3 })
+    end)
+
+    Button.MouseLeave:Connect(function()
+        Tween(Button, { BackgroundTransparency = 0.5 })
+    end)
+
+    -- Click effect
+    Button.MouseButton1Down:Connect(function()
+        Tween(Button, { BackgroundColor3 = Theme.AccentColor, BackgroundTransparency = 0.2 })
+    end)
+
+    Button.MouseButton1Up:Connect(function()
+        Tween(Button, { BackgroundColor3 = Theme.MainColor, BackgroundTransparency = 0.3 })
+    end)
+
+    -- Callback
+    Button.MouseButton1Click:Connect(function()
+        if Callback then Callback() end
+    end)
+
+    return Button
 end
 
-return GUILib
+-- Creates a toggle
+function RayfieldCustom.CreateToggle(Window, Text, Default, Callback)
+    local Toggle = Instance.new("TextButton")
+    Toggle.Name = "Toggle"
+    Toggle.Size = UDim2.new(1, 0, 0, 30)
+    Toggle.BackgroundTransparency = 1
+    Toggle.Text = ""
+    Toggle.AutoButtonColor = false
+    Toggle.Parent = Window.Container
+
+    local ToggleFrame = Instance.new("Frame")
+    ToggleFrame.Name = "ToggleFrame"
+    ToggleFrame.Size = UDim2.new(0, 40, 0, 20)
+    ToggleFrame.Position = UDim2.new(1, -45, 0.5, -10)
+    ToggleFrame.AnchorPoint = Vector2.new(1, 0.5)
+    ToggleFrame.BackgroundColor3 = Theme.MainColor
+    ToggleFrame.BackgroundTransparency = 0.5
+    ToggleFrame.Parent = Toggle
+
+    local ToggleCorner = Instance.new("UICorner")
+    ToggleCorner.CornerRadius = UDim.new(1, 0)
+    ToggleCorner.Parent = ToggleFrame
+
+    local ToggleDot = Instance.new("Frame")
+    ToggleDot.Name = "ToggleDot"
+    ToggleDot.Size = UDim2.new(0, 16, 0, 16)
+    ToggleDot.Position = UDim2.new(0, 2, 0.5, -8)
+    ToggleDot.AnchorPoint = Vector2.new(0, 0.5)
+    ToggleDot.BackgroundColor3 = Theme.TextColor
+    ToggleDot.Parent = ToggleFrame
+
+    local ToggleCornerDot = Instance.new("UICorner")
+    ToggleCornerDot.CornerRadius = UDim.new(1, 0)
+    ToggleCornerDot.Parent = ToggleDot
+
+    local ToggleLabel = Instance.new("TextLabel")
+    ToggleLabel.Name = "Label"
+    ToggleLabel.Text = Text or "Toggle"
+    ToggleLabel.Font = Theme.Font
+    ToggleLabel.TextColor3 = Theme.TextColor
+    ToggleLabel.TextSize = 14
+    ToggleLabel.BackgroundTransparency = 1
+    ToggleLabel.Size = UDim2.new(1, -50, 1, 0)
+    ToggleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    ToggleLabel.Parent = Toggle
+
+    local Toggled = Default or false
+
+    local function UpdateToggle()
+        if Toggled then
+            Tween(ToggleDot, { Position = UDim2.new(1, -18, 0.5, -8), BackgroundColor3 = Theme.AccentColor })
+            Tween(ToggleFrame, { BackgroundColor3 = Theme.AccentColor, BackgroundTransparency = 0.3 })
+        else
+            Tween(ToggleDot, { Position = UDim2.new(0, 2, 0.5, -8), BackgroundColor3 = Theme.TextColor })
+            Tween(ToggleFrame, { BackgroundColor3 = Theme.MainColor, BackgroundTransparency = 0.5 })
+        end
+    end
+
+    UpdateToggle()
+
+    Toggle.MouseButton1Click:Connect(function()
+        Toggled = not Toggled
+        UpdateToggle()
+        if Callback then Callback(Toggled) end
+    end)
+
+    return Toggle
+end
+
+return RayfieldCustom
