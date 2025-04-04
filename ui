@@ -4,24 +4,41 @@ local TweenService = game:GetService("TweenService")
 -- Default theme settings
 GUILib.Theme = {
     PrimaryColor = Color3.fromRGB(70, 130, 200),
-    SecondaryColor = Color3.fromRGB(50, 50, 50),
+    SecondaryColor = Color3.fromRGB(30, 30, 30),
     TextColor = Color3.fromRGB(255, 255, 255),
     Font = Enum.Font.Gotham,
-    TweenTime = 0.25
+    TweenTime = 0.2,
+    CornerRadius = 8,
+    ShadowColor = Color3.fromRGB(0, 0, 0),
+    ShadowTransparency = 0.7
 }
 
--- Creates a basic frame
+-- Creates a basic frame with optional shadow
 function GUILib:CreateFrame(props)
     local frame = Instance.new("Frame")
     frame.BackgroundColor3 = props.BackgroundColor3 or GUILib.Theme.SecondaryColor
     frame.Size = props.Size or UDim2.new(0, 200, 0, 50)
     frame.Position = props.Position or UDim2.new(0.5, 0, 0.5, 0)
-    frame.AnchorPoint = Vector2.new(0.5, 0.5)
+    frame.AnchorPoint = props.AnchorPoint or Vector2.new(0.5, 0.5)
     frame.Parent = props.Parent
     
-    if props.CornerRadius then
+    if props.CornerRadius or GUILib.Theme.CornerRadius then
         local corner = Instance.new("UICorner", frame)
-        corner.CornerRadius = UDim.new(0, props.CornerRadius)
+        corner.CornerRadius = UDim.new(0, props.CornerRadius or GUILib.Theme.CornerRadius)
+    end
+    
+    if props.Shadow then
+        local shadow = Instance.new("ImageLabel", frame)
+        shadow.Name = "Shadow"
+        shadow.Image = "rbxassetid://1316045217"
+        shadow.ImageColor3 = GUILib.Theme.ShadowColor
+        shadow.ImageTransparency = GUILib.Theme.ShadowTransparency
+        shadow.ScaleType = Enum.ScaleType.Slice
+        shadow.SliceCenter = Rect.new(10, 10, 118, 118)
+        shadow.Size = UDim2.new(1, 10, 1, 10)
+        shadow.Position = UDim2.new(0, -5, 0, -5)
+        shadow.BackgroundTransparency = 1
+        shadow.ZIndex = frame.ZIndex - 1
     end
     
     return frame
@@ -31,10 +48,11 @@ end
 function GUILib:CreateButton(props)
     local button = self:CreateFrame({
         BackgroundColor3 = props.BackgroundColor3 or GUILib.Theme.PrimaryColor,
-        Size = props.Size,
+        Size = props.Size or UDim2.new(0, 120, 0, 35),
         Position = props.Position,
         Parent = props.Parent,
-        CornerRadius = props.CornerRadius or 8
+        CornerRadius = props.CornerRadius,
+        Shadow = props.Shadow
     })
     
     local label = Instance.new("TextLabel", button)
@@ -65,6 +83,145 @@ function GUILib:CreateButton(props)
     end)
     
     return button
+end
+
+-- Creates a toggle switch
+function GUILib:CreateToggle(props)
+    local toggleFrame = self:CreateFrame({
+        BackgroundColor3 = Color3.fromRGB(60, 60, 60),
+        Size = props.Size or UDim2.new(0, 40, 0, 20),
+        Position = props.Position,
+        Parent = props.Parent,
+        CornerRadius = 20
+    })
+    
+    local toggleButton = self:CreateFrame({
+        BackgroundColor3 = Color3.fromRGB(120, 120, 120),
+        Size = UDim2.new(0, 16, 0, 16),
+        Position = UDim2.new(0, 2, 0.5, 0),
+        AnchorPoint = Vector2.new(0, 0.5),
+        Parent = toggleFrame,
+        CornerRadius = 20
+    })
+    
+    local state = props.Default or false
+    
+    local function updateToggle()
+        if state then
+            TweenService:Create(toggleButton, TweenInfo.new(GUILib.Theme.TweenTime), {
+                BackgroundColor3 = GUILib.Theme.PrimaryColor,
+                Position = UDim2.new(1, -18, 0.5, 0)
+            }):Play()
+            TweenService:Create(toggleFrame, TweenInfo.new(GUILib.Theme.TweenTime), {
+                BackgroundColor3 = Color3.fromRGB(70, 130, 200):Lerp(Color3.fromRGB(30, 30, 30), 0.3)
+            }):Play()
+        else
+            TweenService:Create(toggleButton, TweenInfo.new(GUILib.Theme.TweenTime), {
+                BackgroundColor3 = Color3.fromRGB(120, 120, 120),
+                Position = UDim2.new(0, 2, 0.5, 0)
+            }):Play()
+            TweenService:Create(toggleFrame, TweenInfo.new(GUILib.Theme.TweenTime), {
+                BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+            }):Play()
+        end
+    end
+    
+    toggleFrame.MouseButton1Click:Connect(function()
+        state = not state
+        updateToggle()
+        if props.OnToggle then
+            props.OnToggle(state)
+        end
+    end)
+    
+    updateToggle()
+    
+    return {
+        SetState = function(self, newState)
+            state = newState
+            updateToggle()
+        end,
+        GetState = function(self)
+            return state
+        end
+    }
+end
+
+-- Creates a tab system
+function GUILib:CreateTabSystem(props)
+    local tabSystem = self:CreateFrame({
+        BackgroundColor3 = GUILib.Theme.SecondaryColor,
+        Size = props.Size or UDim2.new(0, 300, 0, 350),
+        Position = props.Position or UDim2.new(0.5, 0, 0.5, 0),
+        Parent = props.Parent,
+        CornerRadius = props.CornerRadius,
+        Shadow = true
+    })
+    
+    local tabButtonsFrame = self:CreateFrame({
+        BackgroundColor3 = Color3.fromRGB(40, 40, 40),
+        Size = UDim2.new(1, 0, 0, 40),
+        Position = UDim2.new(0, 0, 0, 0),
+        Parent = tabSystem,
+        CornerRadius = {topLeft = props.CornerRadius or GUILib.Theme.CornerRadius}
+    })
+    
+    local contentFrame = self:CreateFrame({
+        BackgroundColor3 = GUILib.Theme.SecondaryColor,
+        Size = UDim2.new(1, 0, 1, -40),
+        Position = UDim2.new(0, 0, 0, 40),
+        Parent = tabSystem
+    })
+    
+    local tabs = {}
+    local currentTab = nil
+    
+    function tabSystem:AddTab(tabName)
+        local tabButton = self:CreateButton({
+            Text = tabName,
+            Size = UDim2.new(0.5, 0, 1, 0),
+            Position = UDim2.new(#tabs * 0.5, 0, 0, 0),
+            Parent = tabButtonsFrame,
+            BackgroundColor3 = Color3.fromRGB(50, 50, 50),
+            CornerRadius = 0
+        })
+        
+        local tabContent = self:CreateFrame({
+            BackgroundTransparency = 1,
+            Size = UDim2.new(1, 0, 1, 0),
+            Parent = contentFrame,
+            Visible = false
+        })
+        
+        table.insert(tabs, {
+            name = tabName,
+            button = tabButton,
+            content = tabContent
+        })
+        
+        tabButton.MouseButton1Click:Connect(function()
+            if currentTab then
+                currentTab.content.Visible = false
+                TweenService:Create(currentTab.button, TweenInfo.new(GUILib.Theme.TweenTime), {
+                    BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+                }):Play()
+            end
+            
+            currentTab = tabs[#tabs]
+            currentTab.content.Visible = true
+            TweenService:Create(currentTab.button, TweenInfo.new(GUILib.Theme.TweenTime), {
+                BackgroundColor3 = GUILib.Theme.PrimaryColor
+            }):Play()
+        end)
+        
+        if #tabs == 1 then
+            tabButton.MouseButton1Click:Fire()
+        end
+        
+        return tabContent
+    end
+    
+    return tabSystem
 end
 
 return GUILib
