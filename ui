@@ -162,34 +162,7 @@ function RayfieldCustom.CreateToggle(Window, Text, Default, Callback)
     Toggle.AutoButtonColor = false
     Toggle.Parent = Window.Container
 
-    -- Toggle Frame (Background)
-    local ToggleFrame = Instance.new("Frame")
-    ToggleFrame.Name = "ToggleFrame"
-    ToggleFrame.Size = UDim2.new(0, 40, 0, 20)
-    ToggleFrame.Position = UDim2.new(1, -10, 0.5, -10)
-    ToggleFrame.AnchorPoint = Vector2.new(1, 0.5)
-    ToggleFrame.BackgroundColor3 = Theme.MainColor
-    ToggleFrame.BackgroundTransparency = 0.5
-    ToggleFrame.Parent = Toggle
-
-    local ToggleCorner = Instance.new("UICorner")
-    ToggleCorner.CornerRadius = UDim.new(1, 0)
-    ToggleCorner.Parent = ToggleFrame
-
-    -- Toggle Dot (Slider)
-    local ToggleDot = Instance.new("Frame")
-    ToggleDot.Name = "ToggleDot"
-    ToggleDot.Size = UDim2.new(0, 16, 0, 16)
-    ToggleDot.Position = UDim2.new(0, 2, 0.5, -8)
-    ToggleDot.AnchorPoint = Vector2.new(0, 0.5)
-    ToggleDot.BackgroundColor3 = Theme.TextColor
-    ToggleDot.Parent = ToggleFrame
-
-    local ToggleCornerDot = Instance.new("UICorner")
-    ToggleCornerDot.CornerRadius = UDim.new(1, 0)
-    ToggleCornerDot.Parent = ToggleDot
-
-    -- Toggle Label (Text)
+    -- Text Label (Left-aligned)
     local ToggleLabel = Instance.new("TextLabel")
     ToggleLabel.Name = "Label"
     ToggleLabel.Text = Text or "Toggle"
@@ -200,17 +173,45 @@ function RayfieldCustom.CreateToggle(Window, Text, Default, Callback)
     ToggleLabel.Size = UDim2.new(1, -50, 1, 0)
     ToggleLabel.Position = UDim2.new(0, 10, 0, 0)
     ToggleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    ToggleLabel.TextYAlignment = Enum.TextYAlignment.Center  -- Vertical center
     ToggleLabel.Parent = Toggle
+
+    -- Toggle Frame (Right-aligned)
+    local ToggleFrame = Instance.new("Frame")
+    ToggleFrame.Name = "ToggleFrame"
+    ToggleFrame.Size = UDim2.new(0, 40, 0, 20)
+    ToggleFrame.Position = UDim2.new(1, -10, 0.5, -10)  -- Perfect right-center
+    ToggleFrame.AnchorPoint = Vector2.new(1, 0.5)
+    ToggleFrame.BackgroundColor3 = Theme.MainColor
+    ToggleFrame.BackgroundTransparency = 0.5
+    ToggleFrame.Parent = Toggle
+
+    local ToggleCorner = Instance.new("UICorner")
+    ToggleCorner.CornerRadius = UDim.new(1, 0)
+    ToggleCorner.Parent = ToggleFrame
+
+    -- Toggle Dot (Centered in frame)
+    local ToggleDot = Instance.new("Frame")
+    ToggleDot.Name = "ToggleDot"
+    ToggleDot.Size = UDim2.new(0, 16, 0, 16)
+    ToggleDot.Position = UDim2.new(0, 2, 0.5, -8)  -- Perfect vertical center
+    ToggleDot.AnchorPoint = Vector2.new(0, 0.5)
+    ToggleDot.BackgroundColor3 = Theme.TextColor
+    ToggleDot.Parent = ToggleFrame
+
+    local ToggleCornerDot = Instance.new("UICorner")
+    ToggleCornerDot.CornerRadius = UDim.new(1, 0)
+    ToggleCornerDot.Parent = ToggleDot
 
     local Toggled = Default or false
 
     local function UpdateToggle()
         if Toggled then
-            Tween(ToggleDot, { Position = UDim2.new(1, -18, 0.5, -8), BackgroundColor3 = Theme.AccentColor })
-            Tween(ToggleFrame, { BackgroundColor3 = Theme.AccentColor, BackgroundTransparency = 0.3 })
+            Tween(ToggleDot, { Position = UDim2.new(1, -18, 0.5, -8) })  -- Right
+            Tween(ToggleFrame, { BackgroundColor3 = Theme.AccentColor })
         else
-            Tween(ToggleDot, { Position = UDim2.new(0, 2, 0.5, -8), BackgroundColor3 = Theme.TextColor })
-            Tween(ToggleFrame, { BackgroundColor3 = Theme.MainColor, BackgroundTransparency = 0.5 })
+            Tween(ToggleDot, { Position = UDim2.new(0, 2, 0.5, -8) })  -- Left
+            Tween(ToggleFrame, { BackgroundColor3 = Theme.MainColor })
         end
     end
 
