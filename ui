@@ -1,765 +1,102 @@
---[[
-Nova UI Library
-by Nova Development Team
+local NotificationLibrary = {}
 
-Features:
-- Modern, clean interface
-- Smooth animations
-- Customizable themes
-- Notification system
-- Configuration saving
-- Key system
-- Various UI elements (buttons, toggles, sliders, etc.)
-]]
+local AbyssGUI = Instance.new("ScreenGui")
+AbyssGUI.Name = "Abyss"
+AbyssGUI.Parent = game:GetService("CoreGui")
+AbyssGUI.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
-local NovaUILibrary = {
-    Version = "1.0",
-    NotificationDuration = 5,
-    ConfigFolder = "NovaUIConfigs",
-    ConfigExtension = ".nova",
-    Flags = {},
-    Themes = {
-        Dark = {
-            Background = Color3.fromRGB(30, 30, 40),
-            Header = Color3.fromRGB(40, 40, 50),
-            Element = Color3.fromRGB(50, 50, 60),
-            ElementHover = Color3.fromRGB(60, 60, 70),
-            Text = Color3.fromRGB(240, 240, 240),
-            Accent = Color3.fromRGB(100, 150, 255),
-            Shadow = Color3.fromRGB(20, 20, 30)
-        },
-        Light = {
-            Background = Color3.fromRGB(240, 240, 245),
-            Header = Color3.fromRGB(220, 220, 230),
-            Element = Color3.fromRGB(200, 200, 210),
-            ElementHover = Color3.fromRGB(180, 180, 190),
-            Text = Color3.fromRGB(50, 50, 60),
-            Accent = Color3.fromRGB(80, 130, 235),
-            Shadow = Color3.fromRGB(180, 180, 190)
-        }
-    }
-}
+local activeNotifications = {}
+local baseYPosition = 75
+local notificationHeight = 60
+local spacing = 5
 
--- Services
-local TweenService = game:GetService("TweenService")
-local UserInputService = game:GetService("UserInputService")
-local RunService = game:GetService("RunService")
-local HttpService = game:GetService("HttpService")
-local Players = game:GetService("Players")
-local CoreGui = game:GetService("CoreGui")
-
--- Main UI Setup
-local NovaUI = Instance.new("ScreenGui")
-NovaUI.Name = "NovaUI"
-NovaUI.ResetOnSpawn = false
-NovaUI.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-
-if syn and syn.protect_gui then
-    syn.protect_gui(NovaUI)
-    NovaUI.Parent = CoreGui
-elseif gethui then
-    NovaUI.Parent = gethui()
-else
-    NovaUI.Parent = CoreGui
+local function updatePositions()
+    for i, notification in ipairs(activeNotifications) do
+        local targetY = baseYPosition + ((i - 1) * (notificationHeight + spacing))
+        notification:TweenPosition(UDim2.new(1, -400, 0, targetY), "Out", "Sine", 0.35)
+    end
 end
 
--- Main Container
-local MainFrame = Instance.new("Frame")
-MainFrame.Name = "Main"
-MainFrame.Size = UDim2.new(0, 500, 0, 450)
-MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
-MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
-MainFrame.BackgroundColor3 = NovaUILibrary.Themes.Dark.Background
-MainFrame.BorderSizePixel = 0
-MainFrame.ClipsDescendants = true
+function NotificationLibrary:Notify(TitleText, Desc, Delay)
+    local Notification = Instance.new("Frame")
+    local Line = Instance.new("Frame")
+    local Warning = Instance.new("ImageLabel")
+    local UICorner = Instance.new("UICorner")
+    local Title = Instance.new("TextLabel")
+    local Description = Instance.new("TextLabel")
 
-local UICorner = Instance.new("UICorner")
-UICorner.CornerRadius = UDim.new(0, 8)
-UICorner.Parent = MainFrame
+    Notification.Name = "Notification"
+    Notification.Parent = AbyssGUI
+    Notification.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    Notification.BackgroundTransparency = 0.400
+    Notification.BorderSizePixel = 0
+    Notification.Position = UDim2.new(1, 5, 0, baseYPosition)
+    Notification.Size = UDim2.new(0, 450, 0, notificationHeight)
 
-local UIStroke = Instance.new("UIStroke")
-UIStroke.Thickness = 1
-UIStroke.Color = Color3.fromRGB(60, 60, 70)
-UIStroke.Parent = MainFrame
+    Line.Name = "Line"
+    Line.Parent = Notification
+    Line.BackgroundColor3 = Color3.fromRGB(241, 196, 15)
+    Line.BorderSizePixel = 0
+    Line.Position = UDim2.new(0, 0, 0.938461304, 0)
+    Line.Size = UDim2.new(0, 0, 0, 4)
 
-local Shadow = Instance.new("ImageLabel")
-Shadow.Name = "Shadow"
-Shadow.Size = UDim2.new(1, 20, 1, 20)
-Shadow.Position = UDim2.new(0.5, 0, 0.5, 0)
-Shadow.AnchorPoint = Vector2.new(0.5, 0.5)
-Shadow.BackgroundTransparency = 1
-Shadow.Image = "rbxassetid://1316045217"
-Shadow.ImageColor3 = NovaUILibrary.Themes.Dark.Shadow
-Shadow.ImageTransparency = 0.8
-Shadow.ScaleType = Enum.ScaleType.Slice
-Shadow.SliceCenter = Rect.new(10, 10, 118, 118)
-Shadow.Parent = MainFrame
+    Warning.Name = "Warning"
+    Warning.Parent = Notification
+    Warning.BackgroundTransparency = 1.000
+    Warning.Position = UDim2.new(0.0258302614, 0, 0.0897435844, 0)
+    Warning.Size = UDim2.new(0, 44, 0, 49)
+    Warning.Image = "rbxassetid://3944668821"
+    Warning.ImageColor3 = Color3.fromRGB(241, 196, 15)
+    Warning.ScaleType = Enum.ScaleType.Fit
 
--- Header
-local Header = Instance.new("Frame")
-Header.Name = "Header"
-Header.Size = UDim2.new(1, 0, 0, 40)
-Header.BackgroundColor3 = NovaUILibrary.Themes.Dark.Header
-Header.BorderSizePixel = 0
-Header.Parent = MainFrame
+    UICorner.CornerRadius = UDim.new(0, 20)
+    UICorner.Parent = Warning
 
-local HeaderCorner = Instance.new("UICorner")
-HeaderCorner.CornerRadius = UDim.new(0, 8)
-HeaderCorner.Parent = Header
+    Title.Name = "Title"
+    Title.Parent = Notification
+    Title.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    Title.BackgroundTransparency = 1.000
+    Title.Position = UDim2.new(0.161, 0, 0.155, 0)
+    Title.Size = UDim2.new(0, 205, 0, 15)
+    Title.Text = TitleText
+    Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Title.TextSize = 12.000
+    Title.TextStrokeTransparency = 0.500
+    Title.TextXAlignment = Enum.TextXAlignment.Left
 
-local Title = Instance.new("TextLabel")
-Title.Name = "Title"
-Title.Size = UDim2.new(0.6, 0, 1, 0)
-Title.Position = UDim2.new(0.05, 0, 0, 0)
-Title.BackgroundTransparency = 1
-Title.Text = "Nova UI"
-Title.TextColor3 = NovaUILibrary.Themes.Dark.Text
-Title.TextSize = 18
-Title.Font = Enum.Font.GothamSemibold
-Title.TextXAlignment = Enum.TextXAlignment.Left
-Title.Parent = Header
+    Description.Name = "Description"
+    Description.Parent = Notification
+    Description.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    Description.BackgroundTransparency = 1.000
+    Description.Position = UDim2.new(0.161, 0, 0.483, 0)
+    Description.Size = UDim2.new(0, 205, 0, 18)
+    Description.Text = Desc
+    Description.TextColor3 = Color3.fromRGB(199, 199, 199)
+    Description.TextSize = 12.000
+    Description.TextStrokeTransparency = 0.500
+    Description.TextXAlignment = Enum.TextXAlignment.Left
 
--- Tab System
-local TabButtons = Instance.new("Frame")
-TabButtons.Name = "TabButtons"
-TabButtons.Size = UDim2.new(1, -20, 0, 35)
-TabButtons.Position = UDim2.new(0, 10, 0, 45)
-TabButtons.BackgroundTransparency = 1
-TabButtons.Parent = MainFrame
+    -- Add to active notifications
+    table.insert(activeNotifications, Notification)
+    updatePositions()
 
-local TabListLayout = Instance.new("UIListLayout")
-TabListLayout.FillDirection = Enum.FillDirection.Horizontal
-TabListLayout.Padding = UDim.new(0, 5)
-TabListLayout.Parent = TabButtons
-
--- Content Area
-local ContentFrame = Instance.new("Frame")
-ContentFrame.Name = "Content"
-ContentFrame.Size = UDim2.new(1, -20, 1, -90)
-ContentFrame.Position = UDim2.new(0, 10, 0, 85)
-ContentFrame.BackgroundTransparency = 1
-ContentFrame.Parent = MainFrame
-
-local ContentScroller = Instance.new("ScrollingFrame")
-ContentScroller.Size = UDim2.new(1, 0, 1, 0)
-ContentScroller.BackgroundTransparency = 1
-ContentScroller.BorderSizePixel = 0
-ContentScroller.ScrollBarThickness = 5
-ContentScroller.ScrollBarImageColor3 = NovaUILibrary.Themes.Dark.Accent
-ContentScroller.Parent = ContentFrame
-
-local ContentLayout = Instance.new("UIListLayout")
-ContentLayout.Padding = UDim.new(0, 10)
-ContentLayout.Parent = ContentScroller
-
--- Notifications
-local Notifications = Instance.new("Frame")
-Notifications.Name = "Notifications"
-Notifications.Size = UDim2.new(0, 300, 1, -20)
-Notifications.Position = UDim2.new(1, 10, 0, 10)
-Notifications.BackgroundTransparency = 1
-Notifications.Parent = NovaUI
-
-local NotificationListLayout = Instance.new("UIListLayout")
-NotificationListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Right
-NotificationListLayout.SortOrder = Enum.SortOrder.LayoutOrder
-NotificationListLayout.Padding = UDim.new(0, 10)
-NotificationListLayout.Parent = Notifications
-
--- Utility Functions
-local function CreateDraggable(frame, handle)
-    local dragging = false
-    local dragInput, mousePos, framePos
-    
-    handle.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragging = true
-            mousePos = input.Position
-            framePos = frame.Position
-            
-            input.Changed:Connect(function()
-                if input.UserInputState == Enum.UserInputState.End then
-                    dragging = false
-                end
-            end)
-        end
-    end)
-    
-    handle.InputChanged:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement then
-            dragInput = input
-        end
-    end)
-    
-    UserInputService.InputChanged:Connect(function(input)
-        if input == dragInput and dragging then
-            local delta = input.Position - mousePos
-            frame.Position = UDim2.new(framePos.X.Scale, framePos.X.Offset + delta.X, framePos.Y.Scale, framePos.Y.Offset + delta.Y)
-        end
-    end)
-end
-
-local function Tween(object, properties, duration, easingStyle, easingDirection)
-    local tweenInfo = TweenInfo.new(duration or 0.5, easingStyle or Enum.EasingStyle.Quint, easingDirection or Enum.EasingDirection.Out)
-    local tween = TweenService:Create(object, tweenInfo, properties)
-    tween:Play()
-    return tween
-end
-
--- Notification System
-function NovaUILibrary:Notify(notificationData)
-    local notification = Instance.new("Frame")
-    notification.Name = "Notification"
-    notification.Size = UDim2.new(0, 280, 0, 80)
-    notification.BackgroundColor3 = NovaUILibrary.Themes.Dark.Element
-    notification.BorderSizePixel = 0
-    notification.LayoutOrder = #Notifications:GetChildren()
-    
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 6)
-    corner.Parent = notification
-    
-    local stroke = Instance.new("UIStroke")
-    stroke.Thickness = 1
-    stroke.Color = NovaUILibrary.Themes.Dark.Accent
-    stroke.Parent = notification
-    
-    local title = Instance.new("TextLabel")
-    title.Name = "Title"
-    title.Size = UDim2.new(1, -20, 0, 20)
-    title.Position = UDim2.new(0, 10, 0, 10)
-    title.BackgroundTransparency = 1
-    title.Text = notificationData.Title or "Notification"
-    title.TextColor3 = NovaUILibrary.Themes.Dark.Text
-    title.TextSize = 16
-    title.Font = Enum.Font.GothamSemibold
-    title.TextXAlignment = Enum.TextXAlignment.Left
-    title.Parent = notification
-    
-    local content = Instance.new("TextLabel")
-    content.Name = "Content"
-    content.Size = UDim2.new(1, -20, 1, -40)
-    content.Position = UDim2.new(0, 10, 0, 35)
-    content.BackgroundTransparency = 1
-    content.Text = notificationData.Content or ""
-    content.TextColor3 = NovaUILibrary.Themes.Dark.Text
-    content.TextSize = 14
-    content.Font = Enum.Font.Gotham
-    content.TextXAlignment = Enum.TextXAlignment.Left
-    content.TextYAlignment = Enum.TextYAlignment.Top
-    content.TextWrapped = true
-    content.Parent = notification
-    
-    notification.Parent = Notifications
-    
     -- Animation
-    notification.Position = UDim2.new(1, 0, 0, 0)
-    Tween(notification, {Position = UDim2.new(0, 0, 0, 0)}, 0.5)
+    Notification:TweenPosition(UDim2.new(1, -400, 0, Notification.Position.Y.Offset), "Out", "Sine", 0.35)
+    wait(0.35)
+    Line:TweenSize(UDim2.new(0, 450, 0, 4), "Out", "Linear", Delay)
+    wait(Delay)
+    Notification:TweenPosition(UDim2.new(1, 5, 0, Notification.Position.Y.Offset), "Out", "Sine", 0.35)
+    wait(0.35)
     
-    -- Auto-remove after duration
-    task.delay(notificationData.Duration or NovaUILibrary.NotificationDuration, function()
-        Tween(notification, {Position = UDim2.new(1, 0, 0, 0)}, 0.5)
-        task.wait(0.5)
-        notification:Destroy()
-    end)
-    
-    return notification
-end
-
--- Window Creation
-function NovaUILibrary:CreateWindow(settings)
-    settings = settings or {}
-    
-    -- Apply window settings
-    Title.Text = settings.Name or "Nova UI"
-    
-    -- Make window draggable
-    CreateDraggable(MainFrame, Header)
-    
-    -- Loading animation
-    MainFrame.Size = UDim2.new(0, 0, 0, 0)
-    MainFrame.Visible = true
-    
-    Tween(MainFrame, {Size = UDim2.new(0, 500, 0, 450)}, 0.7)
-    Tween(Shadow, {ImageTransparency = 0.8}, 0.7)
-    
-    local window = {}
-    
-    -- Tab Creation
-    function window:CreateTab(tabName, tabIcon)
-        local tabButton = Instance.new("TextButton")
-        tabButton.Name = tabName
-        tabButton.Size = UDim2.new(0, 100, 1, 0)
-        tabButton.BackgroundColor3 = NovaUILibrary.Themes.Dark.Element
-        tabButton.AutoButtonColor = false
-        tabButton.Text = ""
-        
-        local corner = Instance.new("UICorner")
-        corner.CornerRadius = UDim.new(0, 6)
-        corner.Parent = tabButton
-        
-        local title = Instance.new("TextLabel")
-        title.Name = "Title"
-        title.Size = UDim2.new(1, 0, 1, 0)
-        title.BackgroundTransparency = 1
-        title.Text = tabName
-        title.TextColor3 = NovaUILibrary.Themes.Dark.Text
-        title.TextSize = 14
-        title.Font = Enum.Font.Gotham
-        title.Parent = tabButton
-        
-        local tabContent = Instance.new("ScrollingFrame")
-        tabContent.Name = tabName
-        tabContent.Size = UDim2.new(1, 0, 1, 0)
-        tabContent.BackgroundTransparency = 1
-        tabContent.BorderSizePixel = 0
-        tabContent.ScrollBarThickness = 5
-        tabContent.ScrollBarImageColor3 = NovaUILibrary.Themes.Dark.Accent
-        tabContent.Visible = false
-        
-        local layout = Instance.new("UIListLayout")
-        layout.Padding = UDim.new(0, 10)
-        layout.Parent = tabContent
-        
-        tabButton.Parent = TabButtons
-        tabContent.Parent = ContentScroller
-        
-        -- Select first tab by default
-        if #TabButtons:GetChildren() == 2 then -- 1 tab + UIListLayout
-            tabButton.BackgroundColor3 = NovaUILibrary.Themes.Dark.Accent
-            tabContent.Visible = true
+    -- Remove from active notifications and clean up
+    for i, notif in ipairs(activeNotifications) do
+        if notif == Notification then
+            table.remove(activeNotifications, i)
+            break
         end
-        
-        -- Tab switching
-        tabButton.MouseButton1Click:Connect(function()
-            for _, otherTab in ipairs(TabButtons:GetChildren()) do
-                if otherTab:IsA("TextButton") then
-                    otherTab.BackgroundColor3 = NovaUILibrary.Themes.Dark.Element
-                end
-            end
-            
-            for _, otherContent in ipairs(ContentScroller:GetChildren()) do
-                if otherContent:IsA("ScrollingFrame") then
-                    otherContent.Visible = false
-                end
-            end
-            
-            tabButton.BackgroundColor3 = NovaUILibrary.Themes.Dark.Accent
-            tabContent.Visible = true
-        end)
-        
-        local tab = {}
-        
-        -- Section Creation
-        function tab:CreateSection(sectionName)
-            local section = Instance.new("Frame")
-            section.Name = "Section"
-            section.Size = UDim2.new(1, 0, 0, 30)
-            section.BackgroundTransparency = 1
-            
-            local title = Instance.new("TextLabel")
-            title.Name = "Title"
-            title.Size = UDim2.new(1, 0, 1, 0)
-            title.BackgroundTransparency = 1
-            title.Text = sectionName
-            title.TextColor3 = NovaUILibrary.Themes.Dark.Text
-            title.TextSize = 16
-            title.Font = Enum.Font.GothamSemibold
-            title.TextXAlignment = Enum.TextXAlignment.Left
-            title.Parent = section
-            
-            section.Parent = tabContent
-            
-            local sectionObj = {}
-            
-            function sectionObj:Update(newName)
-                title.Text = newName
-            end
-            
-            return sectionObj
-        end
-        
-        -- Button Creation
-        function tab:CreateButton(buttonSettings)
-            local button = Instance.new("Frame")
-            button.Name = "Button"
-            button.Size = UDim2.new(1, 0, 0, 40)
-            button.BackgroundColor3 = NovaUILibrary.Themes.Dark.Element
-            
-            local corner = Instance.new("UICorner")
-            corner.CornerRadius = UDim.new(0, 6)
-            corner.Parent = button
-            
-            local stroke = Instance.new("UIStroke")
-            stroke.Thickness = 1
-            stroke.Color = NovaUILibrary.Themes.Dark.Accent
-            stroke.Parent = button
-            
-            local title = Instance.new("TextLabel")
-            title.Name = "Title"
-            title.Size = UDim2.new(1, -20, 1, 0)
-            title.Position = UDim2.new(0, 10, 0, 0)
-            title.BackgroundTransparency = 1
-            title.Text = buttonSettings.Name or "Button"
-            title.TextColor3 = NovaUILibrary.Themes.Dark.Text
-            title.TextSize = 14
-            title.Font = Enum.Font.Gotham
-            title.TextXAlignment = Enum.TextXAlignment.Left
-            title.Parent = button
-            
-            local interact = Instance.new("TextButton")
-            interact.Name = "Interact"
-            interact.Size = UDim2.new(1, 0, 1, 0)
-            interact.BackgroundTransparency = 1
-            interact.Text = ""
-            interact.Parent = button
-            
-            button.Parent = tabContent
-            
-            -- Button interactions
-            interact.MouseEnter:Connect(function()
-                Tween(button, {BackgroundColor3 = NovaUILibrary.Themes.Dark.ElementHover}, 0.3)
-            end)
-            
-            interact.MouseLeave:Connect(function()
-                Tween(button, {BackgroundColor3 = NovaUILibrary.Themes.Dark.Element}, 0.3)
-            end)
-            
-            interact.MouseButton1Click:Connect(function()
-                Tween(button, {BackgroundColor3 = NovaUILibrary.Themes.Dark.Accent}, 0.2)
-                task.wait(0.2)
-                Tween(button, {BackgroundColor3 = NovaUILibrary.Themes.Dark.ElementHover}, 0.2)
-                
-                local success, err = pcall(buttonSettings.Callback)
-                if not success then
-                    warn("Button callback error:", err)
-                end
-            end)
-            
-            local buttonObj = {}
-            
-            function buttonObj:Update(newSettings)
-                title.Text = newSettings.Name or title.Text
-                buttonSettings.Callback = newSettings.Callback or buttonSettings.Callback
-            end
-            
-            return buttonObj
-        end
-        
-        -- Toggle Creation
-        function tab:CreateToggle(toggleSettings)
-            local toggle = Instance.new("Frame")
-            toggle.Name = "Toggle"
-            toggle.Size = UDim2.new(1, 0, 0, 40)
-            toggle.BackgroundColor3 = NovaUILibrary.Themes.Dark.Element
-            
-            local corner = Instance.new("UICorner")
-            corner.CornerRadius = UDim.new(0, 6)
-            corner.Parent = toggle
-            
-            local stroke = Instance.new("UIStroke")
-            stroke.Thickness = 1
-            stroke.Color = NovaUILibrary.Themes.Dark.Accent
-            stroke.Parent = toggle
-            
-            local title = Instance.new("TextLabel")
-            title.Name = "Title"
-            title.Size = UDim2.new(0.7, -10, 1, 0)
-            title.Position = UDim2.new(0, 10, 0, 0)
-            title.BackgroundTransparency = 1
-            title.Text = toggleSettings.Name or "Toggle"
-            title.TextColor3 = NovaUILibrary.Themes.Dark.Text
-            title.TextSize = 14
-            title.Font = Enum.Font.Gotham
-            title.TextXAlignment = Enum.TextXAlignment.Left
-            title.Parent = toggle
-            
-            local switch = Instance.new("Frame")
-            switch.Name = "Switch"
-            switch.Size = UDim2.new(0, 50, 0, 25)
-            switch.Position = UDim2.new(1, -60, 0.5, 0)
-            switch.AnchorPoint = Vector2.new(0, 0.5)
-            switch.BackgroundColor3 = NovaUILibrary.Themes.Dark.ElementHover
-            
-            local switchCorner = Instance.new("UICorner")
-            switchCorner.CornerRadius = UDim.new(0, 12)
-            switchCorner.Parent = switch
-            
-            local toggleButton = Instance.new("Frame")
-            toggleButton.Name = "ToggleButton"
-            toggleButton.Size = UDim2.new(0, 21, 0, 21)
-            toggleButton.Position = UDim2.new(0, 2, 0.5, 0)
-            toggleButton.AnchorPoint = Vector2.new(0, 0.5)
-            toggleButton.BackgroundColor3 = NovaUILibrary.Themes.Dark.Text
-            toggleButton.BorderSizePixel = 0
-            
-            local toggleCorner = Instance.new("UICorner")
-            toggleCorner.CornerRadius = UDim.new(0, 10)
-            toggleCorner.Parent = toggleButton
-            
-            local interact = Instance.new("TextButton")
-            interact.Name = "Interact"
-            interact.Size = UDim2.new(1, 0, 1, 0)
-            interact.BackgroundTransparency = 1
-            interact.Text = ""
-            interact.Parent = toggle
-            
-            switch.Parent = toggle
-            toggleButton.Parent = switch
-            toggle.Parent = tabContent
-            
-            -- Initialize state
-            local state = toggleSettings.Default or false
-            if state then
-                toggleButton.Position = UDim2.new(1, -23, 0.5, 0)
-                switch.BackgroundColor3 = NovaUILibrary.Themes.Dark.Accent
-            end
-            
-            -- Toggle interactions
-            interact.MouseEnter:Connect(function()
-                Tween(toggle, {BackgroundColor3 = NovaUILibrary.Themes.Dark.ElementHover}, 0.3)
-            end)
-            
-            interact.MouseLeave:Connect(function()
-                Tween(toggle, {BackgroundColor3 = NovaUILibrary.Themes.Dark.Element}, 0.3)
-            end)
-            
-            interact.MouseButton1Click:Connect(function()
-                state = not state
-                
-                if state then
-                    Tween(toggleButton, {Position = UDim2.new(1, -23, 0.5, 0)}, 0.2)
-                    Tween(switch, {BackgroundColor3 = NovaUILibrary.Themes.Dark.Accent}, 0.2)
-                else
-                    Tween(toggleButton, {Position = UDim2.new(0, 2, 0.5, 0)}, 0.2)
-                    Tween(switch, {BackgroundColor3 = NovaUILibrary.Themes.Dark.ElementHover}, 0.2)
-                end
-                
-                local success, err = pcall(toggleSettings.Callback, state)
-                if not success then
-                    warn("Toggle callback error:", err)
-                end
-            end)
-            
-            local toggleObj = {}
-            
-            function toggleObj:Set(newState)
-                state = newState
-                
-                if state then
-                    toggleButton.Position = UDim2.new(1, -23, 0.5, 0)
-                    switch.BackgroundColor3 = NovaUILibrary.Themes.Dark.Accent
-                else
-                    toggleButton.Position = UDim2.new(0, 2, 0.5, 0)
-                    switch.BackgroundColor3 = NovaUILibrary.Themes.Dark.ElementHover
-                end
-                
-                local success, err = pcall(toggleSettings.Callback, state)
-                if not success then
-                    warn("Toggle callback error:", err)
-                end
-            end
-            
-            function toggleObj:Update(newSettings)
-                title.Text = newSettings.Name or title.Text
-                toggleSettings.Callback = newSettings.Callback or toggleSettings.Callback
-                self:Set(newSettings.Default or state)
-            end
-            
-            return toggleObj
-        end
-        
-        -- Slider Creation
-        function tab:CreateSlider(sliderSettings)
-            local slider = Instance.new("Frame")
-            slider.Name = "Slider"
-            slider.Size = UDim2.new(1, 0, 0, 60)
-            slider.BackgroundColor3 = NovaUILibrary.Themes.Dark.Element
-            
-            local corner = Instance.new("UICorner")
-            corner.CornerRadius = UDim.new(0, 6)
-            corner.Parent = slider
-            
-            local stroke = Instance.new("UIStroke")
-            stroke.Thickness = 1
-            stroke.Color = NovaUILibrary.Themes.Dark.Accent
-            stroke.Parent = slider
-            
-            local title = Instance.new("TextLabel")
-            title.Name = "Title"
-            title.Size = UDim2.new(1, -20, 0, 20)
-            title.Position = UDim2.new(0, 10, 0, 5)
-            title.BackgroundTransparency = 1
-            title.Text = sliderSettings.Name or "Slider"
-            title.TextColor3 = NovaUILibrary.Themes.Dark.Text
-            title.TextSize = 14
-            title.Font = Enum.Font.Gotham
-            title.TextXAlignment = Enum.TextXAlignment.Left
-            title.Parent = slider
-            
-            local valueDisplay = Instance.new("TextLabel")
-            valueDisplay.Name = "Value"
-            valueDisplay.Size = UDim2.new(0, 100, 0, 20)
-            valueDisplay.Position = UDim2.new(1, -110, 0, 5)
-            valueDisplay.BackgroundTransparency = 1
-            valueDisplay.Text = tostring(sliderSettings.Default or 50) .. (sliderSettings.Suffix or "")
-            valueDisplay.TextColor3 = NovaUILibrary.Themes.Dark.Text
-            valueDisplay.TextSize = 14
-            valueDisplay.Font = Enum.Font.Gotham
-            valueDisplay.TextXAlignment = Enum.TextXAlignment.Right
-            valueDisplay.Parent = slider
-            
-            local track = Instance.new("Frame")
-            track.Name = "Track"
-            track.Size = UDim2.new(1, -20, 0, 10)
-            track.Position = UDim2.new(0, 10, 1, -20)
-            track.AnchorPoint = Vector2.new(0, 1)
-            track.BackgroundColor3 = NovaUILibrary.Themes.Dark.ElementHover
-            track.BorderSizePixel = 0
-            
-            local trackCorner = Instance.new("UICorner")
-            trackCorner.CornerRadius = UDim.new(0, 5)
-            trackCorner.Parent = track
-            
-            local progress = Instance.new("Frame")
-            progress.Name = "Progress"
-            progress.Size = UDim2.new(0.5, 0, 1, 0)
-            progress.BackgroundColor3 = NovaUILibrary.Themes.Dark.Accent
-            progress.BorderSizePixel = 0
-            
-            local progressCorner = Instance.new("UICorner")
-            progressCorner.CornerRadius = UDim.new(0, 5)
-            progressCorner.Parent = progress
-            
-            local handle = Instance.new("Frame")
-            handle.Name = "Handle"
-            handle.Size = UDim2.new(0, 15, 0, 15)
-            handle.Position = UDim2.new(0.5, -7.5, 0.5, -7.5)
-            handle.AnchorPoint = Vector2.new(0.5, 0.5)
-            handle.BackgroundColor3 = NovaUILibrary.Themes.Dark.Text
-            handle.BorderSizePixel = 0
-            
-            local handleCorner = Instance.new("UICorner")
-            handleCorner.CornerRadius = UDim.new(0, 7)
-            handleCorner.Parent = handle
-            
-            local interact = Instance.new("TextButton")
-            interact.Name = "Interact"
-            interact.Size = UDim2.new(1, 0, 1, 0)
-            interact.BackgroundTransparency = 1
-            interact.Text = ""
-            interact.Parent = slider
-            
-            progress.Parent = track
-            handle.Parent = track
-            track.Parent = slider
-            slider.Parent = tabContent
-            
-            -- Initialize values
-            local min = sliderSettings.Min or 0
-            local max = sliderSettings.Max or 100
-            local current = sliderSettings.Default or 50
-            local dragging = false
-            
-            -- Update display
-            local function updateDisplay()
-                valueDisplay.Text = tostring(math.floor(current * 100) / 100) .. (sliderSettings.Suffix or "")
-                local ratio = (current - min) / (max - min)
-                progress.Size = UDim2.new(ratio, 0, 1, 0)
-                handle.Position = UDim2.new(ratio, -7.5, 0.5, -7.5)
-            end
-            
-            updateDisplay()
-            
-            -- Slider interactions
-            interact.MouseEnter:Connect(function()
-                Tween(slider, {BackgroundColor3 = NovaUILibrary.Themes.Dark.ElementHover}, 0.3)
-            end)
-            
-            interact.MouseLeave:Connect(function()
-                if not dragging then
-                    Tween(slider, {BackgroundColor3 = NovaUILibrary.Themes.Dark.Element}, 0.3)
-                end
-            end)
-            
-            interact.MouseButton1Down:Connect(function()
-                dragging = true
-                
-                local connection
-                connection = RunService.Heartbeat:Connect(function()
-                    if not dragging then
-                        connection:Disconnect()
-                        return
-                    end
-                    
-                    local mousePos = UserInputService:GetMouseLocation().X
-                    local trackPos = track.AbsolutePosition.X
-                    local trackSize = track.AbsoluteSize.X
-                    
-                    local ratio = math.clamp((mousePos - trackPos) / trackSize, 0, 1)
-                    current = min + (max - min) * ratio
-                    
-                    updateDisplay()
-                    
-                    local success, err = pcall(sliderSettings.Callback, current)
-                    if not success then
-                        warn("Slider callback error:", err)
-                    end
-                end)
-            end)
-            
-            UserInputService.InputEnded:Connect(function(input)
-                if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                    dragging = false
-                    Tween(slider, {BackgroundColor3 = NovaUILibrary.Themes.Dark.Element}, 0.3)
-                end
-            end)
-            
-            local sliderObj = {}
-            
-            function sliderObj:Set(newValue)
-                current = math.clamp(newValue, min, max)
-                updateDisplay()
-                
-                local success, err = pcall(sliderSettings.Callback, current)
-                if not success then
-                    warn("Slider callback error:", err)
-                end
-            end
-            
-            function sliderObj:Update(newSettings)
-                title.Text = newSettings.Name or title.Text
-                min = newSettings.Min or min
-                max = newSettings.Max or max
-                sliderSettings.Suffix = newSettings.Suffix or sliderSettings.Suffix
-                sliderSettings.Callback = newSettings.Callback or sliderSettings.Callback
-                self:Set(newSettings.Default or current)
-            end
-            
-            return sliderObj
-        end
-        
-        return tab
     end
-    
-    return window
+    Notification:Destroy()
+    updatePositions()
 end
 
--- Destroy UI
-function NovaUILibrary:Destroy()
-    NovaUI:Destroy()
-end
-
--- Toggle UI visibility
-function NovaUILibrary:Toggle()
-    MainFrame.Visible = not MainFrame.Visible
-end
-
--- Keybind to toggle UI
-UserInputService.InputBegan:Connect(function(input, processed)
-    if input.KeyCode == Enum.KeyCode.RightControl and not processed then
-        NovaUILibrary:Toggle()
-    end
-end)
-
-return NovaUILibrary
+return NotificationLibrary
