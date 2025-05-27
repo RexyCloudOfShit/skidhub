@@ -1,102 +1,156 @@
-local NotificationLibrary = {}
+-- Vanity UI Library
+-- Usage: local Vanity = loadstring(game:HttpGet("https://yourlink.com/VanityUI.lua"))()
 
-local AbyssGUI = Instance.new("ScreenGui")
-AbyssGUI.Name = "Abyss"
-AbyssGUI.Parent = game:GetService("CoreGui")
-AbyssGUI.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+local Vanity = {}
+Vanity.__index = Vanity
 
-local activeNotifications = {}
-local baseYPosition = 75
-local notificationHeight = 60
-local spacing = 5
+-- Services
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
 
-local function updatePositions()
-    for i, notification in ipairs(activeNotifications) do
-        local targetY = baseYPosition + ((i - 1) * (notificationHeight + spacing))
-        notification:TweenPosition(UDim2.new(1, -400, 0, targetY), "Out", "Sine", 0.35)
-    end
+-- Helper function to create UI elements
+local function create(class, props, parent)
+	local inst = Instance.new(class)
+	for prop, val in pairs(props) do
+		inst[prop] = val
+	end
+	if parent then
+		inst.Parent = parent
+	end
+	return inst
 end
 
-function NotificationLibrary:Notify(TitleText, Desc, Delay)
-    local Notification = Instance.new("Frame")
-    local Line = Instance.new("Frame")
-    local Warning = Instance.new("ImageLabel")
-    local UICorner = Instance.new("UICorner")
-    local Title = Instance.new("TextLabel")
-    local Description = Instance.new("TextLabel")
+-- Main create window function
+function Vanity:CreateWindow(config)
+	local gui = create("ScreenGui", {
+		Name = "VanityUI",
+		ResetOnSpawn = false
+	}, LocalPlayer:WaitForChild("PlayerGui"))
 
-    Notification.Name = "Notification"
-    Notification.Parent = AbyssGUI
-    Notification.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-    Notification.BackgroundTransparency = 0.400
-    Notification.BorderSizePixel = 0
-    Notification.Position = UDim2.new(1, 5, 0, baseYPosition)
-    Notification.Size = UDim2.new(0, 450, 0, notificationHeight)
+	local main = create("Frame", {
+		Size = UDim2.new(0, 850, 0, 520),
+		Position = UDim2.new(0.5, -425, 0.5, -260),
+		BackgroundColor3 = Color3.fromRGB(18, 18, 18),
+		BorderSizePixel = 0,
+	}, gui)
+	create("UICorner", { CornerRadius = UDim.new(0, 10) }, main)
 
-    Line.Name = "Line"
-    Line.Parent = Notification
-    Line.BackgroundColor3 = Color3.fromRGB(241, 196, 15)
-    Line.BorderSizePixel = 0
-    Line.Position = UDim2.new(0, 0, 0.938461304, 0)
-    Line.Size = UDim2.new(0, 0, 0, 4)
+	local tabs = {}
+	local leftSections = {}
+	local rightSections = {}
 
-    Warning.Name = "Warning"
-    Warning.Parent = Notification
-    Warning.BackgroundTransparency = 1.000
-    Warning.Position = UDim2.new(0.0258302614, 0, 0.0897435844, 0)
-    Warning.Size = UDim2.new(0, 44, 0, 49)
-    Warning.Image = "rbxassetid://3944668821"
-    Warning.ImageColor3 = Color3.fromRGB(241, 196, 15)
-    Warning.ScaleType = Enum.ScaleType.Fit
+	function main:AddTab(name)
+		local tab = {}
 
-    UICorner.CornerRadius = UDim.new(0, 20)
-    UICorner.Parent = Warning
+		tab.Frame = create("Frame", {
+			Size = UDim2.new(1, -130, 1, -50),
+			Position = UDim2.new(0, 130, 0, 50),
+			BackgroundTransparency = 1,
+			Name = name .. "Tab"
+		}, main)
 
-    Title.Name = "Title"
-    Title.Parent = Notification
-    Title.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    Title.BackgroundTransparency = 1.000
-    Title.Position = UDim2.new(0.161, 0, 0.155, 0)
-    Title.Size = UDim2.new(0, 205, 0, 15)
-    Title.Text = TitleText
-    Title.TextColor3 = Color3.fromRGB(255, 255, 255)
-    Title.TextSize = 12.000
-    Title.TextStrokeTransparency = 0.500
-    Title.TextXAlignment = Enum.TextXAlignment.Left
+		tab.Left = create("Frame", {
+			Size = UDim2.new(0.48, -10, 1, 0),
+			Position = UDim2.new(0, 0, 0, 0),
+			BackgroundTransparency = 1
+		}, tab.Frame)
 
-    Description.Name = "Description"
-    Description.Parent = Notification
-    Description.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    Description.BackgroundTransparency = 1.000
-    Description.Position = UDim2.new(0.161, 0, 0.483, 0)
-    Description.Size = UDim2.new(0, 205, 0, 18)
-    Description.Text = Desc
-    Description.TextColor3 = Color3.fromRGB(199, 199, 199)
-    Description.TextSize = 12.000
-    Description.TextStrokeTransparency = 0.500
-    Description.TextXAlignment = Enum.TextXAlignment.Left
+		tab.Right = create("Frame", {
+			Size = UDim2.new(0.48, -10, 1, 0),
+			Position = UDim2.new(0.52, 10, 0, 0),
+			BackgroundTransparency = 1
+		}, tab.Frame)
 
-    -- Add to active notifications
-    table.insert(activeNotifications, Notification)
-    updatePositions()
+		function tab:AddLeftGroupbox(title)
+			return Vanity:_createGroupbox(tab.Left, title)
+		end
 
-    -- Animation
-    Notification:TweenPosition(UDim2.new(1, -400, 0, Notification.Position.Y.Offset), "Out", "Sine", 0.35)
-    wait(0.35)
-    Line:TweenSize(UDim2.new(0, 450, 0, 4), "Out", "Linear", Delay)
-    wait(Delay)
-    Notification:TweenPosition(UDim2.new(1, 5, 0, Notification.Position.Y.Offset), "Out", "Sine", 0.35)
-    wait(0.35)
-    
-    -- Remove from active notifications and clean up
-    for i, notif in ipairs(activeNotifications) do
-        if notif == Notification then
-            table.remove(activeNotifications, i)
-            break
-        end
-    end
-    Notification:Destroy()
-    updatePositions()
+		function tab:AddRightGroupbox(title)
+			return Vanity:_createGroupbox(tab.Right, title)
+		end
+
+		tabs[name] = tab
+		return tab
+	end
+
+	return setmetatable({ Tabs = tabs }, { __index = main })
 end
 
-return NotificationLibrary
+-- Create a group box
+function Vanity:_createGroupbox(parent, title)
+	local box = {}
+	box.Frame = create("Frame", {
+		Size = UDim2.new(1, -10, 0, 180),
+		BackgroundColor3 = Color3.fromRGB(35, 35, 35),
+		BorderSizePixel = 0
+	}, parent)
+	create("UICorner", { CornerRadius = UDim.new(0, 6) }, box.Frame)
+
+	local label = create("TextLabel", {
+		Text = title,
+		Font = Enum.Font.GothamBold,
+		TextColor3 = Color3.fromRGB(255, 255, 255),
+		TextSize = 14,
+		BackgroundTransparency = 1,
+		Size = UDim2.new(1, -20, 0, 30),
+		Position = UDim2.new(0, 10, 0, 10),
+		TextXAlignment = Enum.TextXAlignment.Left
+	}, box.Frame)
+
+	local layout = create("UIListLayout", {
+		SortOrder = Enum.SortOrder.LayoutOrder,
+		Padding = UDim.new(0, 6)
+	}, box.Frame)
+
+	function box:AddToggle(id, config)
+		local toggle = create("TextButton", {
+			Text = config.Text,
+			Font = Enum.Font.Gotham,
+			TextSize = 14,
+			TextColor3 = config.Risky and Color3.fromRGB(255, 85, 85) or Color3.fromRGB(255, 255, 255),
+			BackgroundColor3 = Color3.fromRGB(40, 40, 40),
+			Size = UDim2.new(1, -20, 0, 30),
+			AutoButtonColor = false
+		}, box.Frame)
+		create("UICorner", { CornerRadius = UDim.new(0, 6) }, toggle)
+
+		local state = config.Default or false
+		toggle.MouseButton1Click:Connect(function()
+			state = not state
+			if config.Callback then config.Callback(state) end
+		end)
+	end
+
+	function box:AddDivider()
+		create("Frame", {
+			Size = UDim2.new(1, -20, 0, 2),
+			BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+		}, box.Frame)
+	end
+
+	function box:AddSlider(id, config)
+		local frame = create("Frame", {
+			Size = UDim2.new(1, -20, 0, 30),
+			BackgroundTransparency = 1
+		}, box.Frame)
+
+		local label = create("TextLabel", {
+			Text = config.Text .. ": " .. tostring(config.Default or 0) .. (config.Sufix or ""),
+			Font = Enum.Font.Gotham,
+			TextColor3 = Color3.fromRGB(255, 255, 255),
+			TextSize = 14,
+			BackgroundTransparency = 1,
+			Size = UDim2.new(1, 0, 1, 0)
+		}, frame)
+
+		-- Not a real slider, just a label update example
+		-- Full slider behavior can be scripted later
+		if config.Callback then
+			config.Callback(config.Default or 0)
+		end
+	end
+
+	return box
+end
+
+return Vanity
