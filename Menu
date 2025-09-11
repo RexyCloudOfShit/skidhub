@@ -1,6 +1,3 @@
--- REASON: Discontinued nobody wanted to buy it either... I can see why vaderhaxx was super ugly lol 
--- Code from around october of 2024
-
 -- Variables 
     local uis = game:GetService("UserInputService") 
     local players = game:GetService("Players") 
@@ -970,7 +967,7 @@
                     misc_text.Text ..= " "
                 end  
                 
-                misc_text.Text ..= " ] fps: 1000 objects rendeed: 1000"
+                misc_text.Text ..= " ] "
                 menu_title.Text = "[ " .. cfg.name .. " ]"
             end 
 
